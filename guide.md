@@ -38,7 +38,7 @@ Get your MaaS API Token or API Key and an enabled model ID from the [Huawei Clou
 |---|---|
 | `MAAS_API_KEY` | Your token or API key |
 | `MAAS_BASE_URL` | Defaults to `https://api-ap-southeast-1.modelarts-maas.com/openai/v1` (international site). The China site address is included as a comment in `.env.example`. |
-| `MAAS_MODEL` | A model ID enabled for your account; replace the template value if needed |
+| `MAAS_MODEL` | A model ID enabled for your account; replace the template value if needed. When unset, the first `MAAS_MODELS` entry is the default. |
 | `MAAS_MODELS` | Optional comma-separated allowlist shown in the model selector. The template lists `deepseek-v4.1-flash-1017,glm-5.3`; both must be enabled for your account. |
 
 Keep the token out of chat and Git. This app's configuration is separate from CodeArts Agent's model settings.

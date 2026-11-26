@@ -11,12 +11,15 @@ if not SCENARIO_ID.replace('-', '').isalnum():
 SCENARIO = json.loads((ROOT / 'scenarios' / f'{SCENARIO_ID}.json').read_text(encoding='utf-8'))
 BASE_URL = os.getenv('MAAS_BASE_URL', '').rstrip('/')
 API_KEY = os.getenv('MAAS_API_KEY', '')
-MODEL = os.getenv('MAAS_MODEL', '')
-MODELS = [entry.strip() for entry in os.getenv('MAAS_MODELS', '').split(',') if entry.strip()]
-if MODEL and MODEL not in MODELS:
-    MODELS.insert(0, MODEL)
-if not MODELS:
-    MODELS = [MODEL] if MODEL else []
+def resolve_models(default, allowlist):
+    # The first allowlisted model is the default when MAAS_MODEL is unset.
+    models = [entry.strip() for entry in allowlist.split(',') if entry.strip()]
+    model = default.strip() or (models[0] if models else '')
+    if model and model not in models:
+        models.insert(0, model)
+    return model, models
+
+MODEL, MODELS = resolve_models(os.getenv('MAAS_MODEL', ''), os.getenv('MAAS_MODELS', ''))
 DATABASE_URL = os.getenv('DATABASE_URL', 'sqlite:///./data/retail.db')
 # Relative SQLite URLs are always resolved against backend, regardless of cwd.
 if DATABASE_URL.startswith('sqlite:///./'):

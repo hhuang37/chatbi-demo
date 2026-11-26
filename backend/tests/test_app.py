@@ -152,6 +152,13 @@ def test_model_allowlist_and_same_model_for_sql_and_analysis(monkeypatch):
         assert check['model'] == 'alt-model'
         assert client.post('/api/connection/check', json={}).status_code == 200
 
+
+def test_model_allowlist_supplies_the_default():
+    assert config.resolve_models('', 'model-a, model-b') == ('model-a', ['model-a', 'model-b'])
+    assert config.resolve_models('model-b', 'model-a') == ('model-b', ['model-b', 'model-a'])
+    assert config.resolve_models('', '') == ('', [])
+
+
 @pytest.mark.parametrize('http_status,code',[(401,'auth_failed'),(403,'auth_failed'),(404,'model_or_endpoint'),(429,'rate_limited'),(500,'upstream_error')])
 def test_maas_error_classification(monkeypatch,http_status,code):
     import httpx

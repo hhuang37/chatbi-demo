@@ -50,7 +50,7 @@ The `/api/health` response exposes the current model, the allowlist and the defa
 
 ## Data and configuration
 
-The backend loads `.env` and scenario JSON at startup; restart it after editing either. `MAAS_MODEL` sets the default; the optional comma-separated `MAAS_MODELS` allowlist feeds the model selector, and the default model is always included. A connection check makes a small MaaS request. Credentials are never sent to the frontend.
+The backend loads `.env` and scenario JSON at startup; restart it after editing either. `MAAS_MODEL` sets the default, falling back to the first allowlisted model when it is unset; the optional comma-separated `MAAS_MODELS` allowlist feeds the model selector, and the default model is always included. A connection check makes a small MaaS request. Credentials are never sent to the frontend.
 
 Conversations, including questions, returned tables/SQL/analysis and the active conversation id, are stored in `localStorage` under versioned keys (`chatbi-conversations-v1`, `chatbi-active-v1`). The UI caps stored conversations and turns, sanitizes restored data, and shows a warning if storage is unavailable. Clearing site data removes the history; nothing is shared between browsers or machines.
 

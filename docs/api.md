@@ -9,7 +9,7 @@
 
 ## Models
 
-`/api/health` returns the model allowlist in `models` plus `default_model` (and the currently configured `model`). The allowlist comes from the optional `MAAS_MODELS` environment variable (comma-separated); when unset it contains only `MAAS_MODEL`. Requests may pass any allowlisted model via the optional `model` field; unknown or missing-allowlist IDs are rejected with HTTP 422 and `detail: {code: "invalid_model"}`. When `model` is omitted, the default model is used.
+`/api/health` returns the model allowlist in `models` plus `default_model` (and the currently configured `model`). The allowlist comes from the optional `MAAS_MODELS` environment variable (comma-separated); when unset it contains only `MAAS_MODEL`, and when `MAAS_MODEL` is unset the first allowlisted model is the default. Requests may pass any allowlisted model via the optional `model` field; unknown or missing-allowlist IDs are rejected with HTTP 422 and `detail: {code: "invalid_model"}`. When `model` is omitted, the default model is used.
 
 ## Chat request
 
