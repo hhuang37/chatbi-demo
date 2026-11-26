@@ -41,7 +41,7 @@ Get your MaaS API Token or API Key and an enabled model ID from the [Huawei Clou
 | Setting | What to enter |
 |---|---|
 | `MAAS_API_KEY` | Your token or API key |
-| `MAAS_BASE_URL` | Defaults to `https://api-ap-southeast-1.modelarts-maas.com/openai/v1` (international site, Singapore); the China site address is included as a comment in `.env.example` |
+| `MAAS_BASE_URL` | Defaults to `https://api-ap-southeast-1.modelarts-maas.com/openai/v1` (international site). The China site address is included as a comment in `.env.example`. |
 | `MAAS_MODEL` | A model ID enabled for your account; replace the template value if needed |
 
 Keep the token out of chat and Git. This app's configuration is separate from CodeArts Agent's model settings.
@@ -97,13 +97,13 @@ Expected result: Ask questions directly to see comparisons and trends as charts,
 
 ## Step 2: Show and select the model
 
-Add a model selector so you can see the current model and choose another available model before asking a question.
+Add a model selector so you can see the current model and choose another before asking a question.
 
 Optional Agent prompt:
 
-> Following AGENTS.md, add a Model selector to the bilingual UI using a backend allowlist. Pass the selected model to chat and connection checks per request; SQL and analysis must use the same model. Reject unknown IDs. Reset connection status on switching and disable switching during requests. Preserve the choice through New chat and restore the default on refresh. Update the API docs and run the checks required by AGENTS.md.
+> Follow AGENTS.md and add a Model selector to the bilingual UI. Keep `deepseek-v4.1-flash-1017` as the starter default and include `glm-5.3` as a second option without extra setup. Validate model IDs against a backend allowlist and use the selected model for SQL generation, analysis and connection checks.
 
-Expected result: See the current model and choose another available model for subsequent queries.
+After implementation, open the app and confirm both models appear. Select `glm-5.3`, run a connection check, and ask a question to confirm the app still returns a result. Both models need to be enabled for the configured MaaS account.
 
 ## Step 3: Save and switch conversations
 
