@@ -14,7 +14,7 @@
 ## Chat request
 
 ```json
-{"question":"What were sales by store in September 2026?","history":[],"language":"en","model":"deepseek-v4.1-flash"}
+{"question":"What were sales by store in September 2026?","history":[],"language":"en","model":"deepseek-v4.1-flash-1017"}
 ```
 
 `language` is `en` by default and may be `zh`. `model` is optional and must be one of the allowlisted IDs in `/api/health`; omitted means the default model. SQL generation and analysis always use the same requested model within one chat request. History accepts user and assistant messages, up to 12 items and 3000 characters each. Questions are limited to 2000 characters.

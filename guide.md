@@ -2,13 +2,13 @@
 
 ## Project overview
 
-Lion City ChatBI lets you ask questions about sample retail data in English or Chinese. MaaS generates SQL; the backend checks it and queries the local database. The starter displays result tables, with SQL available to inspect. Ask for analysis or an explanation in your question when needed.
+Lion City ChatBI lets you ask questions about sample retail data in English or Chinese. MaaS generates SQL; the backend checks it and queries the local database. The app displays result tables, charts for suitable results and expandable SQL. Ask for analysis or an explanation in your question when needed.
 
 ## Project goal
 
-Continue building ChatBI with charts, model selection, and saved conversations. Implement the tasks yourself or use the optional CodeArts Agent prompts below.
+This branch already implements the three capabilities below; the steps remain as reference and as practice for rebuilding them. Continue building ChatBI with charts, model selection, and saved conversations.
 
-This workshop kit contains the starter. Run it with Step 0, then continue through Steps 1–3 to add the capabilities below.
+This workshop kit contains the complete demo. Run it with Step 0, then use Steps 1–3 to review how the capabilities fit together.
 
 ## Step 0: Prepare the environment, configure MaaS, then start manually
 
@@ -28,6 +28,8 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\bootstrap.ps1 -LocalOnly -
 
 For the pre-class check, you can start both services and open the home page with the default configuration. Complete the MaaS setup before trying a question.
 
+If you cloned the repository instead of downloading the kit, run `bootstrap.ps1` without `-LocalOnly`; it downloads the pinned `deps-v1` dependency bundle once and then prepares the same environment.
+
 ### Configure MaaS
 
 Get your MaaS API Token or API Key and an enabled model ID from the [Huawei Cloud Console](https://console.huaweicloud.com/). Edit `backend/.env`:
@@ -37,6 +39,7 @@ Get your MaaS API Token or API Key and an enabled model ID from the [Huawei Clou
 | `MAAS_API_KEY` | Your token or API key |
 | `MAAS_BASE_URL` | Defaults to `https://api-ap-southeast-1.modelarts-maas.com/openai/v1` (international site). The China site address is included as a comment in `.env.example`. |
 | `MAAS_MODEL` | A model ID enabled for your account; replace the template value if needed |
+| `MAAS_MODELS` | Optional comma-separated allowlist shown in the model selector. The template lists `deepseek-v4.1-flash-1017,glm-5.3`; both must be enabled for your account. |
 
 Keep the token out of chat and Git. This app's configuration is separate from CodeArts Agent's model settings.
 
@@ -67,9 +70,9 @@ Startup checks MaaS with a small model call. Code changes reload automatically; 
 
 ### Check your first query
 
-Confirm `MaaS connected`, then select a suggested question on the page. Expect a result table and expandable SQL. Ask for analysis or an explanation in your question when needed. If connection fails, open the connection status for details.
+Confirm `MaaS connected`, then select a suggested question on the page. Expect a result table, expandable SQL, and a chart when the result suits one. Ask for analysis or an explanation in your question when needed. If connection fails, open the connection status for details.
 
-`New chat` clears the current conversation. Refreshing also clears it until you implement Step 3.
+`New chat` starts a fresh conversation. Conversations are saved in the browser and survive a refresh; the sidebar lists earlier ones for switching and renaming.
 
 ## Step 1: Add charts
 

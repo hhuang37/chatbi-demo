@@ -1,8 +1,8 @@
 # Offline workshop setup
 
-For the Windows workshop kit, follow [Step 0 in the included guide](guide.md#step-0-prepare-the-environment-configure-maas-then-start-manually). The kit includes the source and dependencies in one ZIP.
+For the Windows workshop kit, follow [Step 0 in the included guide](guide.md#step-0-prepare-the-environment-configure-maas-then-start-manually). The kit includes the source and dependencies in one ZIP; this branch's kit is published as the `full-v1` release.
 
-The instructions below cover the original source and dependency downloads from `main` and `deps-v1`.
+The instructions below cover the source checkout and the dependency downloads. This branch is `release/full-v1`; clone it with the branch flag below. The starter on `main` uses the same `deps-v1` bundle.
 
 ## 1. What you need
 
@@ -18,7 +18,7 @@ Intel Macs are not supported by the offline bundle. `bootstrap.sh` stops with a 
 Windows PowerShell, from the project root:
 
 ```powershell
-git clone https://github.com/hhuang37/chatbi-demo.git
+git clone --branch release/full-v1 https://github.com/hhuang37/chatbi-demo.git
 cd chatbi-demo
 powershell -NoProfile -ExecutionPolicy Bypass -File .\bootstrap.ps1
 ```
@@ -26,7 +26,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\bootstrap.ps1
 macOS, from the project root:
 
 ```bash
-git clone https://github.com/hhuang37/chatbi-demo.git
+git clone --branch release/full-v1 https://github.com/hhuang37/chatbi-demo.git
 cd chatbi-demo
 bash ./bootstrap.sh
 ```
@@ -174,7 +174,7 @@ npm run dev -- --port 5173 --strictPort
 
 ## 5. Adding dependencies while offline
 
-Step 1 of guide.md adds ECharts. The bundle already contains `echarts@6.1.0`, so:
+The app and the Step 1 exercise use ECharts. The bundle already contains `echarts@6.1.0`, so:
 
 - `import` from `echarts` works without any install step.
 - Running `npm install echarts` anyway succeeds from the bundled npm cache (`frontend\.npmrc` sets `prefer-offline` and points npm at `.offline\npm-cache`).

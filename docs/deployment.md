@@ -1,6 +1,6 @@
 # Deploy the demo on Huawei Cloud ECS
 
-This optional deployment is for a later hosted demo. For the current local exercise, follow [guide.md](../guide.md). Deployment does not implement any of the guide's feature tasks; the selected Git branch determines the app's capabilities.
+This optional deployment is for a later hosted demo. For the current local exercise, follow [guide.md](../guide.md). The app's capabilities come from the selected Git branch; this guide clones `release/full-v1`, which includes charts, model selection and saved conversations.
 
 ## Deployment layout
 
@@ -41,10 +41,10 @@ npm --version
 
 Python must be 3.11 or newer; Node must be 20 or newer. Installing these runtimes is a host preparation step, not part of the deployment script.
 
-Clone the starter branch:
+Clone the complete branch:
 
 ```bash
-sudo git clone --branch main https://github.com/Leon00x/chatbi-demo.git /opt/chatbi-demo
+sudo git clone --branch release/full-v1 https://github.com/hhuang37/chatbi-demo.git /opt/chatbi-demo
 cd /opt/chatbi-demo
 sudo bash deploy/deploy.sh prepare
 ```
