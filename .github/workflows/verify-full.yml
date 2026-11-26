@@ -1,0 +1,103 @@
+name: Verify Windows full kit
+
+on:
+  push:
+    branches:
+      - release/full-v1
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Build and verify ${{ matrix.platform }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: windows-2025
+            platform: win-x64
+          - runner: windows-11-arm
+            platform: win-arm64
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download the original dependencies
+        shell: powershell
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $deps = Join-Path $env:RUNNER_TEMP 'kit-deps'
+          New-Item -ItemType Directory -Path $deps | Out-Null
+          gh release download deps-v1 --repo hhuang37/chatbi-demo --pattern chatbi-deps-${{ matrix.platform }}-v1.zip --dir $deps
+          if ($LASTEXITCODE -ne 0) { throw 'Could not download the original dependencies.' }
+
+      - name: Build the kit
+        shell: powershell
+        run: |
+          $deps = Join-Path $env:RUNNER_TEMP 'kit-deps\chatbi-deps-${{ matrix.platform }}-v1.zip'
+          $output = Join-Path $env:RUNNER_TEMP 'kit-dist'
+          .\offline\build\build-lab.ps1 -Platform ${{ matrix.platform }} -DependencyZip $deps -Tag full-v1 -OutputDirectory $output
+
+      - name: Verify the final ZIP and write its checksum
+        shell: powershell
+        run: |
+          $output = Join-Path $env:RUNNER_TEMP 'kit-dist'
+          $zip = Join-Path $output 'chatbi-full-v1-${{ matrix.platform }}.zip'
+          $hash = (Get-FileHash -LiteralPath $zip -Algorithm SHA256).Hash.ToLowerInvariant()
+          .\offline\build\test-lab.ps1 -BundleZip $zip -Platform ${{ matrix.platform }}
+          if ($hash -ne (Get-FileHash -LiteralPath $zip -Algorithm SHA256).Hash.ToLowerInvariant()) {
+            throw 'The full kit ZIP changed during acceptance.'
+          }
+          "$hash  chatbi-full-v1-${{ matrix.platform }}.zip" | Set-Content -LiteralPath (Join-Path $output 'SHA256SUMS-${{ matrix.platform }}') -Encoding ASCII
+
+      - name: Upload the verified ZIP and checksum
+        uses: actions/upload-artifact@v4
+        with:
+          name: chatbi-full-v1-${{ matrix.platform }}
+          path: |
+            ${{ runner.temp }}/kit-dist/chatbi-full-v1-${{ matrix.platform }}.zip
+            ${{ runner.temp }}/kit-dist/SHA256SUMS-${{ matrix.platform }}
+          compression-level: 0
+          if-no-files-found: error
+
+  release:
+    name: Publish the full kit release
+    needs: verify
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download the verified artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Combine the checksums
+        run: |
+          set -euo pipefail
+          cd dist
+          cat SHA256SUMS-* > SHA256SUMS
+          rm -f SHA256SUMS-*
+          cat SHA256SUMS
+
+      - name: Create or update the release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: full-v1
+        run: |
+          set -euo pipefail
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "Updating the existing release $TAG"
+          else
+            gh release create "$TAG" --repo "$GITHUB_REPOSITORY" \
+              --target "$GITHUB_SHA" \
+              --title "ChatBI Complete Windows Kit v1" \
+              --notes "The complete Lion City ChatBI demo with charts, model selection and saved conversations. Download the ZIP for your Windows system type, extract it, then run .\\setup.ps1 -LocalOnly from the project root and follow step 0 in guide.md. The kit bundles Python, Node.js and the offline dependencies; no MaaS credentials are included."
+          fi
+          gh release upload "$TAG" --repo "$GITHUB_REPOSITORY" dist/*.zip dist/SHA256SUMS --clobber

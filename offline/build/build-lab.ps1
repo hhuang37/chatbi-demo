@@ -12,8 +12,8 @@ param(
     [string]$Platform,
     [Parameter(Mandatory = $true)]
     [string]$DependencyZip,
-    [ValidatePattern('^lab-v\d+(\.\d+)*$')]
-    [string]$Tag = 'lab-v1',
+    [ValidatePattern('^(lab|full)-v\d+(\.\d+)*$')]
+    [string]$Tag = 'full-v1',
     [string]$OutputDirectory
 )
 
@@ -47,7 +47,7 @@ $name = "chatbi-$Tag-$Platform"
 $zipPath = Join-Path $outputRoot "$name.zip"
 if (Test-Path -LiteralPath $zipPath) { throw "Archive already exists: $zipPath" }
 
-$scratch = Join-Path $env:TEMP ('lab-' + [guid]::NewGuid().ToString('N').Substring(0, 10))
+$scratch = Join-Path $env:TEMP ('kit-' + [guid]::NewGuid().ToString('N').Substring(0, 10))
 $sourceZip = Join-Path $scratch 'source.zip'
 $project = Join-Path $scratch $name
 $dependencies = Join-Path $scratch 'deps'
@@ -73,7 +73,7 @@ try {
         sourceCommit = $sourceCommit
         dependencyRelease = 'deps-v1'
         dependencySha256 = $dependencySha256
-    } | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $offline 'lab-manifest.json') -Encoding ASCII
+    } | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $offline 'kit-manifest.json') -Encoding ASCII
 
     & $tarExe -a -cf $archive -C $scratch $name
     if ($LASTEXITCODE -ne 0) { throw 'Could not create the workshop ZIP.' }

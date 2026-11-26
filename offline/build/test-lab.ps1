@@ -98,7 +98,7 @@ $powershellExe = Join-Path $system32 'WindowsPowerShell\v1.0\powershell.exe'
 $cmdExe = Join-Path $system32 'cmd.exe'
 $taskkillExe = Join-Path $system32 'taskkill.exe'
 $originalUserPath = [Environment]::GetEnvironmentVariable('Path', 'User')
-$scratch = Join-Path ([IO.Path]::GetTempPath()) ('lab ' + [guid]::NewGuid().ToString('N').Substring(0, 8))
+$scratch = Join-Path ([IO.Path]::GetTempPath()) ('kit ' + [guid]::NewGuid().ToString('N').Substring(0, 8))
 $originalEnvironment = @{}
 $backendProcess = $null
 $frontendProcess = $null
@@ -112,16 +112,16 @@ try {
     [IO.Compression.ZipFile]::ExtractToDirectory($zip, $scratch)
     $topLevel = @(Get-ChildItem -LiteralPath $scratch -Force)
     if ($topLevel.Count -ne 1 -or -not $topLevel[0].PSIsContainer) {
-        throw 'The lab ZIP must contain a single project directory.'
+        throw 'The kit ZIP must contain a single project directory.'
     }
     $project = $topLevel[0].FullName
     foreach ($name in @('.env', '.venv')) {
         $unexpected = Get-ChildItem -LiteralPath $project -Recurse -Force -Filter $name | Select-Object -First 1
-        if ($unexpected) { throw "The fresh lab ZIP contains $($unexpected.FullName)." }
+        if ($unexpected) { throw "The fresh kit ZIP contains $($unexpected.FullName)." }
     }
-    $manifest = Get-Content -LiteralPath (Join-Path $project '.offline\lab-manifest.json') -Raw | ConvertFrom-Json
+    $manifest = Get-Content -LiteralPath (Join-Path $project '.offline\kit-manifest.json') -Raw | ConvertFrom-Json
     if ($manifest.platform -ne $Platform -or $manifest.dependencyRelease -ne 'deps-v1') {
-        throw "Unexpected lab manifest platform or dependency release for $Platform."
+        throw "Unexpected kit manifest platform or dependency release for $Platform."
     }
 
     # Leave the Windows root off PATH because it can contain a system py.exe.
@@ -147,6 +147,7 @@ try {
         MAAS_API_KEY = $null
         MAAS_BASE_URL = $null
         MAAS_MODEL = $null
+        MAAS_MODELS = $null
         SCENARIO = $null
         DATABASE_URL = $null
         CORS_ORIGINS = $null
@@ -210,8 +211,13 @@ try {
     if ($health.status -ne 'ok' -or $health.maas.state -ne 'missing_key') {
         throw 'The backend did not report a ready environment with the default MaaS configuration.'
     }
+    if (-not $health.features.charts) { throw 'The backend did not enable the chart feature flag.' }
+    if (-not $health.default_model -or $health.models.Count -lt 1) {
+        throw 'The backend did not expose the model allowlist.'
+    }
     $scenario = Wait-LocalResponse -Process $frontendProcess -Url 'http://127.0.0.1:5173/api/scenario' | ConvertFrom-Json
     if ($scenario.id -ne 'sg-retail') { throw 'Vite returned an unexpected scenario from the backend.' }
+    if ($scenario.suggestions.Count -lt 1) { throw 'The scenario returned no suggested questions.' }
     $html = Get-LocalResponse -Url 'http://127.0.0.1:5173/'
     $title = 'Lion City ' + [char]0x00B7 + ' ChatBI'
     if (-not $html.Contains("<title>$title</title>")) { throw 'The frontend page title was unexpected.' }
@@ -236,4 +242,4 @@ try {
     }
 }
 
-Write-Host "Lab ZIP acceptance passed on native $Platform."
+Write-Host "Kit ZIP acceptance passed on native $Platform."
