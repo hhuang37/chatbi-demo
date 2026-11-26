@@ -110,6 +110,7 @@ function App() {
   const [models, setModels] = useState<string[]>([]);
   const [model, setModel] = useState("");
   const modelRef = useRef("");
+  const autoCheckedFor = useRef("");
   const [connection, setConnection] = useState<Connection>({
     state: "checking",
     message: "Checking the MaaS connection…",
@@ -168,8 +169,20 @@ function App() {
             }
           }
           const maas = x.maas;
-          if (!(maas.model && modelRef.current && maas.model !== modelRef.current))
+          if (maas.model && modelRef.current && maas.model !== modelRef.current) {
+            // The backend status belongs to another model, so it cannot describe
+            // the current one. Check once instead of leaving the banner stuck.
+            if (autoCheckedFor.current !== modelRef.current) {
+              autoCheckedFor.current = modelRef.current;
+              setConnection({
+                state: "checking",
+                message: t.checkingConnection,
+              });
+              check(modelRef.current);
+            }
+          } else {
             setConnection(maas);
+          }
         })
         .catch(() => {
           if (active)
