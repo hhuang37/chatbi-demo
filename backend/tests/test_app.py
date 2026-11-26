@@ -5,6 +5,7 @@ import tempfile
 _temp = tempfile.TemporaryDirectory()
 os.environ['DATABASE_URL'] = 'sqlite:///' + (_temp.name.replace('\\','/') + '/test.db')
 os.environ['MAAS_API_KEY'] = ''
+os.environ['SCENARIO'] = 'sg-retail'
 
 import json
 import sqlite3
@@ -61,7 +62,7 @@ def test_health_missing_key_and_contract(monkeypatch):
     with TestClient(app) as client:
         health = client.get('/api/health').json()
         assert health['maas']['state'] == 'missing_key'
-        assert health['features']['charts'] is False
+        assert health['features']['charts'] is True
         assert 'api_key' not in json.dumps(health).lower()
         assert client.get('/api/scenario').json()['currency'] == 'SGD'
         assert client.post('/api/connection/check').json()['state'] == 'missing_key'
@@ -70,7 +71,7 @@ def test_health_missing_key_and_contract(monkeypatch):
 
 def test_chat_response_and_analysis_failure(monkeypatch):
     calls = []
-    async def fake(messages, max_tokens=1200):
+    async def fake(messages, max_tokens=1200, model=None):
         calls.append(messages)
         if len(calls) > 1:
             raise maas.MaaSError('timeout', 'fake upstream failure')
@@ -94,7 +95,7 @@ def test_chat_response_and_analysis_failure(monkeypatch):
 ])
 def test_question_controls_analysis(monkeypatch, question, expected_calls):
     calls = []
-    async def fake(messages, max_tokens=1200):
+    async def fake(messages, max_tokens=1200, model=None):
         calls.append(messages)
         if len(calls) == 2:
             return 'Analysis from the returned rows.'
@@ -110,7 +111,7 @@ def test_question_controls_analysis(monkeypatch, question, expected_calls):
 
 def test_no_analysis_and_invalid_model_plan(monkeypatch):
     calls=[]
-    async def fake(messages, max_tokens=1200):
+    async def fake(messages, max_tokens=1200, model=None):
         calls.append(messages)
         return '{"kind":"query","answer":"门店","sql":"SELECT name FROM stores"}'
     monkeypatch.setattr(service,'completion',fake)
@@ -123,6 +124,33 @@ def test_no_analysis_and_invalid_model_plan(monkeypatch):
         async def invalid(*args,**kwargs): return 'not JSON'
         monkeypatch.setattr(service,'completion',invalid)
         assert client.post('/api/chat',json={'question':'测试'}).status_code == 422
+
+
+def test_model_allowlist_and_same_model_for_sql_and_analysis(monkeypatch):
+    monkeypatch.setattr(config, 'MODEL', 'default-model')
+    monkeypatch.setattr(config, 'MODELS', ['default-model', 'alt-model'])
+    used = []
+    async def fake(messages, max_tokens=1200, model=None):
+        used.append(model)
+        if messages[0]['content'].startswith('Write a brief business analysis'):
+            return 'Analysis text.'
+        return json.dumps({'kind':'query','answer':'门店','sql':'SELECT name FROM stores'})
+    monkeypatch.setattr(service, 'completion', fake)
+    with TestClient(app) as client:
+        health = client.get('/api/health').json()
+        assert health['default_model'] == 'default-model'
+        assert health['models'] == ['default-model', 'alt-model']
+        result = client.post('/api/chat', json={'question':'分析门店','model':'alt-model'})
+        assert result.status_code == 200
+        assert result.json()['analysis'] == 'Analysis text.'
+        assert used == ['alt-model', 'alt-model']
+        assert client.post('/api/chat', json={'question':'门店','model':'unknown-model'}).status_code == 422
+        assert client.post('/api/chat', json={'question':'门店'}).status_code == 200
+        assert used[-1] == 'default-model'
+        assert client.post('/api/connection/check', json={'model':'unknown-model'}).status_code == 422
+        check = client.post('/api/connection/check', json={'model':'alt-model'}).json()
+        assert check['model'] == 'alt-model'
+        assert client.post('/api/connection/check', json={}).status_code == 200
 
 @pytest.mark.parametrize('http_status,code',[(401,'auth_failed'),(403,'auth_failed'),(404,'model_or_endpoint'),(429,'rate_limited'),(500,'upstream_error')])
 def test_maas_error_classification(monkeypatch,http_status,code):

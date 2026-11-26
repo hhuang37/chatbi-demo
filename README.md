@@ -6,9 +6,9 @@ The included scenario is a fictional Singapore retailer with four stores and eig
 
 ## Current version
 
-The `main` branch is the starter: query chat, result tables, expandable SQL, analysis when you ask for it, connection checks and English/Chinese switching. **New chat** clears the current conversation. English is the default language.
+The `main` branch now includes charts: query chat, result tables, expandable SQL, bar charts for category comparisons, line charts for date/month trends, analysis when you ask for it, connection checks and English/Chinese switching. **New chat** clears the current conversation. English is the default language.
 
-Charts, model selection and saved conversations are development tasks. Conversations currently disappear on refresh or New chat.
+Model selection and saved conversations are development tasks. Conversations currently disappear on refresh or New chat.
 
 ## Get started
 

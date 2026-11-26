@@ -12,6 +12,11 @@ SCENARIO = json.loads((ROOT / 'scenarios' / f'{SCENARIO_ID}.json').read_text(enc
 BASE_URL = os.getenv('MAAS_BASE_URL', '').rstrip('/')
 API_KEY = os.getenv('MAAS_API_KEY', '')
 MODEL = os.getenv('MAAS_MODEL', '')
+MODELS = [entry.strip() for entry in os.getenv('MAAS_MODELS', '').split(',') if entry.strip()]
+if MODEL and MODEL not in MODELS:
+    MODELS.insert(0, MODEL)
+if not MODELS:
+    MODELS = [MODEL] if MODEL else []
 DATABASE_URL = os.getenv('DATABASE_URL', 'sqlite:///./data/retail.db')
 # Relative SQLite URLs are always resolved against backend, regardless of cwd.
 if DATABASE_URL.startswith('sqlite:///./'):

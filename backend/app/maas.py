@@ -13,13 +13,13 @@ def configuration_error():
         return ('invalid_config', 'Set an HTTPS MaaS base URL and model in backend/.env, then restart the backend.')
     return None
 
-async def completion(messages, max_tokens=1200):
+async def completion(messages, max_tokens=1200, model=None):
     error = configuration_error()
     if error:
         raise MaaSError(*error)
     try:
         async with httpx.AsyncClient(timeout=httpx.Timeout(60, connect=10), follow_redirects=False) as client:
-            response = await client.post(config.BASE_URL + '/chat/completions', headers={'Authorization': 'Bearer ' + config.API_KEY}, json={'model': config.MODEL, 'messages': messages, 'temperature': 0, 'max_tokens': max_tokens, 'stream': False})
+            response = await client.post(config.BASE_URL + '/chat/completions', headers={'Authorization': 'Bearer ' + config.API_KEY}, json={'model': model or config.MODEL, 'messages': messages, 'temperature': 0, 'max_tokens': max_tokens, 'stream': False})
         if response.status_code in (401,403):
             raise MaaSError('auth_failed', 'Authentication failed. Check your key and model permissions.')
         if response.status_code == 404:
@@ -39,9 +39,9 @@ async def completion(messages, max_tokens=1200):
     except (KeyError, IndexError, ValueError, TypeError):
         raise MaaSError('invalid_response', 'MaaS returned an invalid response.') from None
 
-async def check_connection():
+async def check_connection(model=None):
     try:
-        await completion([{'role':'user','content':'Reply with OK.'}], max_tokens=32)
+        await completion([{'role':'user','content':'Reply with OK.'}], max_tokens=32, model=model)
         return {'state':'connected','message':'MaaS connection verified. The model and key are working.'}
     except MaaSError as error:
         return {'state':error.code,'message':error.message}
