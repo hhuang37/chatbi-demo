@@ -10,6 +10,8 @@ The `main` branch is the starter: query chat, result tables, expandable SQL, ana
 
 Charts, model selection and saved conversations are development tasks. Conversations currently disappear on refresh or New chat.
 
+The completed demo is on the `release/full-v1` branch and in the [full-v1 Windows kit](https://github.com/hhuang37/chatbi-demo/releases/tag/full-v1).
+
 ## Get started
 
 Use compatible Python 3.11+ and Node.js 20+ installations with npm. Follow [Step 0 in the guide](guide.md#step-0-prepare-the-environment-configure-maas-then-start-manually) to prepare the environment, configure your MaaS token, and start both services.
